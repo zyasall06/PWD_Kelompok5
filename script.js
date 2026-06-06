@@ -1,188 +1,169 @@
-<?php
-session_start();
-$loggedIn = isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true;
+document.addEventListener('DOMContentLoaded', function () {
+  const buttons = document.querySelectorAll('.btn');
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
+  const purchaseForm = document.getElementById('purchase-form');
+  const dashboardSection = document.getElementById('dashboard');
+  const profileName = document.getElementById('profile-name');
+  const profileEmail = document.getElementById('profile-email');
+  const profileStatus = document.getElementById('profile-status');
+  const ticketStatusText = document.getElementById('ticket-status-text');
+  const ticketDetails = document.getElementById('ticket-details');
+  const dashboardTicketType = document.getElementById('dashboard-ticket-type');
+  const dashboardTicketSeat = document.getElementById('dashboard-ticket-seat');
+  const seatPreviewText = document.getElementById('seat-preview-text');
+  const downloadButton = document.getElementById('download-ticket');
 
-// Simulasi data pengumuman
-$announcements = [
-    [
-        'id' => 1,
-        'title' => 'Lineup Final Telah Diumumkan!',
-        'content' => 'Semua artis yang akan tampil di YOUTHEVER 2026 telah dikonfirmasi. Segera pesan tiketmu sekarang sebelum terlambat.',
-        'date' => '2 Juni 2026',
-        'type' => 'penting',
-        'image' => '🎤'
-    ],
-    [
-        'id' => 2,
-        'title' => 'Perubahan Jadwal Stage A',
-        'content' => 'Jadwal stage A untuk hari kedua telah diubah. Beberapa artis akan tampil lebih awal dari rencana semula untuk mengakomodasi acara lain.',
-        'date' => '1 Juni 2026',
-        'type' => 'update',
-        'image' => '📅'
-    ],
-    [
-        'id' => 3,
-        'title' => 'Early Bird Tiket Regular Pass Habis!',
-        'content' => 'Early bird untuk kategori Regular Pass telah habis terjual dalam 48 jam. Tiket regular pass dengan harga normal masih tersedia.',
-        'date' => '31 Mei 2026',
-        'type' => 'info',
-        'image' => '🎟️'
-    ],
-    [
-        'id' => 4,
-        'title' => 'Fasilitas Area VIP Dibuka Pendaftaran',
-        'content' => 'Area VIP lounge sekarang tersedia dengan fasilitas lengkap: AC, WiFi gratis, catering, dan meet & greet dengan artis pilihan.',
-        'date' => '28 Mei 2026',
-        'type' => 'penting',
-        'image' => '⭐'
-    ],
-    [
-        'id' => 5,
-        'title' => 'Sponsor Terbaru Bergabung dengan YOUTHEVER 2026',
-        'content' => 'Kami bangga mengumumkan sponsor terbaru yang bergabung dalam festival ini. Sponsors ini akan memberikan experience eksklusif untuk pengunjung.',
-        'date' => '25 Mei 2026',
-        'type' => 'info',
-        'image' => '🤝'
-    ],
-];
-?>
-<!doctype html>
-<html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pengumuman & Berita - YOUTHEVER 2026</title>
-    <link rel="stylesheet" href="css/style.css" />
-  </head>
-  <body>
-    <nav>
-      <div class="nav-left">
-        <div class="logo">YOUTHEVER 2026</div>
-      </div>
-      <div class="nav-center">
-        <a href="index.php">Home</a>
-        <a href="lineup.php">Line Up</a>
-        <a href="event-map.php">Venue</a>
-        <a href="rundown.php">Rundown</a>
-        <a href="announcements.php" style="border-bottom: 2px solid #d4af37; color: #d4af37;">Berita</a>
-        <a href="faq.php">FAQ</a>
-      </div>
-      <div class="nav-right">
-        <?php if ($loggedIn): ?>
-          <a href="profile.php">Dashboard</a>
-        <?php else: ?>
-          <a href="index.php">Login</a>
-        <?php endif; ?>
-        <a href="tickets.php" class="buy-btn">Buy Ticket</a>
-      </div>
-    </nav>
+  let state = {
+    user: null,
+    ticket: null,
+  };
 
-    <main class="announcements-page">
-      <div class="announcements-container">
-        
-        <section class="page-header">
-          <h1>📢 Pengumuman & Berita</h1>
-          <p>Tetap update dengan semua informasi terbaru tentang YOUTHEVER 2026</p>
-        </section>
+  function saveState() {
+    localStorage.setItem('yf-state', JSON.stringify(state));
+  }
 
-        <!-- Filter -->
-        <div class="filter-section">
-          <button class="filter-btn active" onclick="filterAnnouncements('all')">Semua</button>
-          <button class="filter-btn" onclick="filterAnnouncements('penting')">Penting</button>
-          <button class="filter-btn" onclick="filterAnnouncements('update')">Update</button>
-          <button class="filter-btn" onclick="filterAnnouncements('info')">Info</button>
-        </div>
-
-        <!-- Announcements List -->
-        <div class="announcements-list">
-          <?php foreach ($announcements as $announcement): ?>
-            <article class="announcement-card" data-type="<?php echo htmlspecialchars($announcement['type']); ?>">
-              <div class="announcement-header">
-                <div class="announcement-icon"><?php echo $announcement['image']; ?></div>
-                <div class="announcement-meta">
-                  <h3><?php echo htmlspecialchars($announcement['title']); ?></h3>
-                  <div class="announcement-info">
-                    <span class="date">📅 <?php echo htmlspecialchars($announcement['date']); ?></span>
-                    <span class="type-badge <?php echo htmlspecialchars($announcement['type']); ?>">
-                      <?php 
-                        $typeLabel = [
-                          'penting' => 'Penting',
-                          'update' => 'Update',
-                          'info' => 'Info'
-                        ];
-                        echo $typeLabel[$announcement['type']] ?? 'Info';
-                      ?>
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div class="announcement-content">
-                <p><?php echo htmlspecialchars($announcement['content']); ?></p>
-              </div>
-              <div class="announcement-footer">
-                <button class="btn-read-more">Baca Selengkapnya →</button>
-              </div>
-            </article>
-          <?php endforeach; ?>
-        </div>
-
-        <!-- Empty State (untuk filter tertentu) -->
-        <div id="empty-state" style="display: none; text-align: center; padding: 60px 20px;">
-          <p style="color: #888; font-size: 1.1rem;">Tidak ada pengumuman untuk kategori ini.</p>
-        </div>
-
-      </div>
-    </main>
-
-    <footer>
-      <div class="footer-grid">
-        <div class="footer-col">
-          <h3>YOUTHEVER</h3>
-          <p>Festival Experience 2026</p>
-        </div>
-        <div class="footer-col">
-          <p>
-            <strong>PARTNERSHIP & SPONSORSHIP</strong><br />partnership@youthreverfest.com
-          </p>
-          <p><strong>MEDIA & PRESS</strong><br />media@youthreverfest.com</p>
-        </div>
-        <div class="footer-col">
-          <p>
-            <strong>CONTACT</strong><br />✉ media@youthreverfest.com<br />🎧 Youmin +62 812-3456-7890
-          </p>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <p>© 2026 YOUTHREVERFEST ALL RIGHTS RESERVED.</p>
-        <p>🔒 EVENT ADMIN PORTAL</p>
-      </div>
-    </footer>
-
-    <script>
-      function filterAnnouncements(type) {
-        const cards = document.querySelectorAll('.announcement-card');
-        const buttons = document.querySelectorAll('.filter-btn');
-        let visibleCount = 0;
-
-        // Update button active state
-        buttons.forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
-
-        // Filter cards
-        cards.forEach(card => {
-          if (type === 'all' || card.getAttribute('data-type') === type) {
-            card.style.display = 'block';
-            visibleCount++;
-          } else {
-            card.style.display = 'none';
-          }
-        });
-
-        // Show/hide empty state
-        document.getElementById('empty-state').style.display = 
-          visibleCount === 0 ? 'block' : 'none';
+  function loadState() {
+    const saved = localStorage.getItem('yf-state');
+    if (saved) {
+      try {
+        state = JSON.parse(saved);
+      } catch (error) {
+        console.error('Failed to parse saved state', error);
       }
-    </script>
+    }
+  }
 
-  </body>
-</html>
+  function updateDashboard() {
+    if (!state.user) {
+      if (profileName) profileName.textContent = 'Guest';
+      if (profileEmail) profileEmail.textContent = '-';
+      if (profileStatus) profileStatus.textContent = 'Not signed in';
+      if (ticketStatusText) ticketStatusText.textContent = 'No ticket purchased yet.';
+      if (ticketDetails) ticketDetails.classList.add('hidden');
+      if (seatPreviewText) seatPreviewText.textContent = 'No seat selected';
+      if (dashboardSection) dashboardSection.classList.add('hidden');
+      return;
+    }
+
+    if (profileName) profileName.textContent = state.user.name || state.user.email.split('@')[0];
+    if (profileEmail) profileEmail.textContent = state.user.email;
+    if (profileStatus) profileStatus.textContent = 'Signed in';
+    if (dashboardSection) dashboardSection.classList.remove('hidden');
+
+    if (state.ticket) {
+      if (ticketStatusText) ticketStatusText.textContent = 'Ticket purchased successfully.';
+      if (ticketDetails) ticketDetails.classList.remove('hidden');
+      if (dashboardTicketType) dashboardTicketType.textContent = state.ticket.type;
+      if (dashboardTicketSeat) dashboardTicketSeat.textContent = state.ticket.seat;
+      if (seatPreviewText) seatPreviewText.textContent = `Seat ${state.ticket.seat} in zone ${state.ticket.seat.charAt(0)}`;
+    } else {
+      if (ticketStatusText) ticketStatusText.textContent = 'No ticket purchased yet.';
+      if (ticketDetails) ticketDetails.classList.add('hidden');
+      if (seatPreviewText) seatPreviewText.textContent = 'No seat selected';
+    }
+  }
+
+  function createTicketFile() {
+    if (!state.user || !state.ticket) return;
+
+    const ticketContent = `YOUTHREVER FEST 2026 Ticket\n` +
+      `Name: ${state.user.name}\n` +
+      `Email: ${state.user.email}\n` +
+      `Ticket Type: ${state.ticket.type}\n` +
+      `Seat: ${state.ticket.seat}\n` +
+      `Gate: A5\n` +
+      `Date: 20–21 September 2026\n` +
+      `Enjoy the festival!`;
+
+    const blob = new Blob([ticketContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `YOUTHREVER-FEST-${state.ticket.type}-TICKET.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  if (loginForm) {
+    loginForm.addEventListener('submit', function (event) {
+      event.preventDefault();
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value.trim();
+      if (!email || !password) {
+        alert('Masukkan email dan password untuk masuk.');
+        return;
+      }
+      state.user = {
+        email,
+        name: email.split('@')[0],
+      };
+      saveState();
+      updateDashboard();
+      alert('Berhasil masuk. Dashboard profile aktif.');
+    });
+  }
+
+  if (registerForm) {
+    registerForm.addEventListener('submit', function (event) {
+      event.preventDefault();
+      const name = document.getElementById('register-name').value.trim();
+      const email = document.getElementById('register-email').value.trim();
+      const password = document.getElementById('register-password').value.trim();
+      if (!name || !email || !password) {
+        alert('Lengkapi semua data untuk membuat akun baru.');
+        return;
+      }
+      state.user = {
+        name,
+        email,
+      };
+      saveState();
+      updateDashboard();
+      alert('Akun berhasil dibuat. Silakan cek dashboard.');
+    });
+  }
+
+  if (purchaseForm) {
+    purchaseForm.addEventListener('submit', function (event) {
+      event.preventDefault();
+      const name = document.getElementById('buyer-name').value.trim();
+      const email = document.getElementById('buyer-email').value.trim();
+      const type = document.getElementById('ticket-type').value;
+      const seat = document.getElementById('seat-select').value;
+      if (!name || !email || !type || !seat) {
+        alert('Lengkapi semua data tiket sebelum melakukan pembelian.');
+        return;
+      }
+      state.user = state.user || { name, email };
+      state.ticket = {
+        type,
+        seat,
+      };
+      saveState();
+      updateDashboard();
+      alert('Pembelian tiket berhasil. Silakan cek dashboard untuk detail dan unduh tiket.');
+    });
+  }
+
+  if (downloadButton) {
+    downloadButton.addEventListener('click', function () {
+      createTicketFile();
+    });
+  }
+
+  buttons.forEach((button) => {
+    button.addEventListener('mouseover', function () {
+      button.style.boxShadow = '0 16px 32px rgba(203, 161, 53, 0.25)';
+    });
+    button.addEventListener('mouseout', function () {
+      button.style.boxShadow = 'none';
+    });
+  });
+
+  document.documentElement.style.scrollBehavior = 'smooth';
+  loadState();
+  updateDashboard();
+});
