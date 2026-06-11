@@ -1,5 +1,7 @@
 <?php
+include 'service/database.php';
 session_start();
+
 $loggedIn = isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true;
 
 $ticketCategories = [
@@ -8,9 +10,40 @@ $ticketCategories = [
     ['id'=>3,'name'=>'Premium Pass', 'price'=>1200000,'description'=>'Pengalaman premium dengan akses penuh',     'features'=>['Premium lounge','Parking gratis','Catering gratis','VIP merchandise'],'stock'=>25],
 ];
 
-$step           = isset($_GET['step'])   ? intval($_GET['step'])   : 1;
+$step            = isset($_GET['step'])    ? intval($_GET['step'])    : 1;
 $selectedTicket = isset($_GET['ticket']) ? intval($_GET['ticket']) : null;
 $qty            = isset($_GET['qty'])    ? max(1, min(5, intval($_GET['qty']))) : 1;
+
+// --- PROSES SIMPAN DATABASE SAAT USER SELESAI TRANSAKSI ---
+$error = '';
+$success = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['buy_ticket'])) {
+    $name = isset($_POST['name']) ? trim($_POST['name']) : '';
+    $email = isset($_POST['email']) ? trim($_POST['email']) : '';
+    $phone = isset($_POST['phone']) ? trim($_POST['phone']) : '';
+    $quantity = isset($_POST['quantity']) ? intval($_POST['quantity']) : 1;
+    
+    if (empty($name) || empty($email) || empty($phone) || $quantity <= 0) {
+        $error = 'Semua field wajib diisi dengan benar.';
+        $step = 2; // Paksa kembali ke step 2 jika ada data kosong
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Format email tidak valid.';
+        $step = 2;
+    } else {
+        // Query Simpan Data ke Tabel Tickets Anda
+        $sql = "INSERT INTO ticket2 (`nama lengkap`, `email`, `nomor telepon`, `jumlah tiket`) 
+                VALUES ('$name', '$email', '$phone', '$quantity')";
+
+        if ($db->query($sql) === TRUE) {
+            // Jika sukses disimpan, arahkan ke halaman profil/sukses lewat Javascript bawaan Anda di bawah
+            $success = 'Pemesanan berhasil disimpan ke database!';
+        } else {
+            $error = 'Gagal menyimpan ke database: ' . $db->error;
+            $step = 4;
+        }
+    }
+}
 ?>
 <!doctype html>
 <html lang="id">
@@ -189,7 +222,10 @@ $qty            = isset($_GET['qty'])    ? max(1, min(5, intval($_GET['qty']))) 
 <main class="tickets-page">
 <div class="tickets-container">
 
-  <!-- Progress Bar -->
+  <?php if ($error): ?>
+    <p style="color: #ff6b6b; text-align: center; font-weight: bold; margin-bottom: 15px;"><?php echo htmlspecialchars($error); ?></p>
+  <?php endif; ?>
+
   <div class="progress-bar">
     <?php
     $steps = ['Pilih Tiket','Form Data','Pilih Seat','Checkout'];
@@ -205,7 +241,6 @@ $qty            = isset($_GET['qty'])    ? max(1, min(5, intval($_GET['qty']))) 
     <?php endif; endforeach; ?>
   </div>
 
-  <!-- STEP 1: Pilih Tiket -->
   <?php if ($step == 1): ?>
   <section class="step-content">
     <h2>Pilih Kategori Tiket</h2>
@@ -233,25 +268,24 @@ $qty            = isset($_GET['qty'])    ? max(1, min(5, intval($_GET['qty']))) 
   </section>
   <?php endif; ?>
 
-  <!-- STEP 2: Form Data -->
   <?php if ($step == 2 && $selectedTicket): ?>
   <section class="step-content">
     <h2>Isi Data Pembeli</h2>
-    <form class="purchase-form">
+    <div class="purchase-form">
       <div class="form-row">
         <div class="form-group">
           <label>Nama Lengkap</label>
-          <input type="text" placeholder="Nama Lengkap" required/>
+          <input type="text" id="custName" placeholder="Nama Lengkap" value="<?php echo isset($_SESSION['temp_name']) ? htmlspecialchars($_SESSION['temp_name']) : ''; ?>" required/>
         </div>
         <div class="form-group">
           <label>Email</label>
-          <input type="email" placeholder="email@example.com" required/>
+          <input type="email" id="custEmail" placeholder="email@example.com" value="<?php echo isset($_SESSION['temp_email']) ? htmlspecialchars($_SESSION['temp_email']) : ''; ?>" required/>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>Nomor Telepon</label>
-          <input type="tel" placeholder="+62 8xx-xxxx-xxxx" required/>
+          <input type="tel" id="custPhone" placeholder="+62 8xx-xxxx-xxxx" value="<?php echo isset($_SESSION['temp_phone']) ? htmlspecialchars($_SESSION['temp_phone']) : ''; ?>" required/>
         </div>
         <div class="form-group">
           <label>Jumlah Tiket</label>
@@ -264,16 +298,33 @@ $qty            = isset($_GET['qty'])    ? max(1, min(5, intval($_GET['qty']))) 
       </div>
       <div class="form-actions">
         <a href="?step=1" class="btn-back">← Kembali</a>
-        <button type="button" class="btn-next"
-          onclick="location.href='?step=3&ticket=<?php echo $selectedTicket; ?>&qty='+document.getElementById('qtyInput').value">
+        <button type="button" class="btn-next" onclick="saveStep2Data()">
           Lanjutkan →
         </button>
       </div>
-    </form>
+    </div>
   </section>
+  <script>
+    function saveStep2Data() {
+        const name = document.getElementById('custName').value;
+        const email = document.getElementById('custEmail').value;
+        const phone = document.getElementById('custPhone').value;
+        const qty = document.getElementById('qtyInput').value;
+
+        if(!name || !email || !phone) {
+            alert('Harap isi seluruh field data pembeli!');
+            return;
+        }
+
+        sessionStorage.setItem('t_name', name);
+        sessionStorage.setItem('t_email', email);
+        sessionStorage.setItem('t_phone', phone);
+        
+        location.href='?step=3&ticket=<?php echo $selectedTicket; ?>&qty='+qty;
+    }
+  </script>
   <?php endif; ?>
 
-  <!-- STEP 3: Pilih Seat -->
   <?php if ($step == 3 && $selectedTicket): ?>
   <section class="step-content">
     <h2>Pilih Tempat Duduk</h2>
@@ -284,7 +335,6 @@ $qty            = isset($_GET['qty'])    ? max(1, min(5, intval($_GET['qty']))) 
         <span><span class="seat-selected"></span> Dipilih</span>
       </div>
 
-      <!-- Stage indicator -->
       <div style="text-align:center;background:#1a0a0a;border:2px solid #e74c3c44;
         border-radius:8px;padding:10px;color:#e74c3c;font-weight:700;
         font-size:.85rem;letter-spacing:.1em;margin-bottom:20px;">
@@ -321,7 +371,6 @@ $qty            = isset($_GET['qty'])    ? max(1, min(5, intval($_GET['qty']))) 
   </section>
   <?php endif; ?>
 
-  <!-- STEP 4: Checkout + Payment -->
   <?php if ($step == 4 && $selectedTicket):
     $tkt   = $ticketCategories[$selectedTicket - 1];
     $total = $tkt['price'] * $qty;
@@ -329,7 +378,6 @@ $qty            = isset($_GET['qty'])    ? max(1, min(5, intval($_GET['qty']))) 
   <section class="step-content">
     <h2>Review & Checkout</h2>
 
-    <!-- Summary -->
     <div class="checkout-summary">
       <div class="summary-item">
         <label>Kategori Tiket</label>
@@ -348,10 +396,8 @@ $qty            = isset($_GET['qty'])    ? max(1, min(5, intval($_GET['qty']))) 
       </div>
     </div>
 
-    <!-- ── Payment Section ──────────────────────────── -->
     <div class="payment-section">
 
-      <!-- Header + Timer -->
       <div class="payment-section-header">
         <h3>💳 Metode Pembayaran</h3>
         <div class="pay-timer" id="payTimer">
@@ -360,10 +406,8 @@ $qty            = isset($_GET['qty'])    ? max(1, min(5, intval($_GET['qty']))) 
         </div>
       </div>
 
-      <!-- Method cards -->
       <div class="pay-methods">
 
-        <!-- Transfer Bank Mandiri -->
         <label class="pay-method-card chosen" id="card-bank">
           <input type="radio" name="pay_method" value="bank" checked onchange="selectMethod('bank')"/>
           <div class="pm-top">
@@ -389,7 +433,6 @@ $qty            = isset($_GET['qty'])    ? max(1, min(5, intval($_GET['qty']))) 
           </div>
         </label>
 
-        <!-- E-Wallet GoPay -->
         <label class="pay-method-card" id="card-ewallet">
           <input type="radio" name="pay_method" value="ewallet" onchange="selectMethod('ewallet')"/>
           <div class="pm-top">
@@ -415,47 +458,55 @@ $qty            = isset($_GET['qty'])    ? max(1, min(5, intval($_GET['qty']))) 
           </div>
         </label>
 
-      </div><!-- /pay-methods -->
+      </div><form method="post" action="tickets.php?step=4&ticket=<?php echo $selectedTicket; ?>&qty=<?php echo $qty; ?>" enctype="multipart/form-data">
+        
+        <input type="hidden" name="name" id="hiddenName" />
+        <input type="hidden" name="email" id="hiddenEmail" />
+        <input type="hidden" name="phone" id="hiddenPhone" />
+        <input type="hidden" name="quantity" value="<?php echo $qty; ?>" />
 
-      <!-- Bukti Pembayaran Upload -->
-      <div class="pay-proof">
-        <h4>📎 Upload Bukti Pembayaran</h4>
-        <div class="proof-upload-area" id="proofArea">
-          <input type="file" id="proofFile" accept="image/*,.pdf"
-            onchange="handleProofUpload(event)"/>
-          <span class="proof-icon">🖼️</span>
-          <p class="proof-text">
-            <strong>Klik atau seret file ke sini</strong><br>
-            Mendukung JPG, PNG, PDF · Maks. 5 MB
+        <div class="pay-proof">
+          <h4>📎 Upload Bukti Pembayaran</h4>
+          <div class="proof-upload-area" id="proofArea">
+            <input type="file" id="proofFile" accept="image/*,.pdf" onchange="handleProofUpload(event)"/>
+            <span class="proof-icon">🖼️</span>
+            <p class="proof-text">
+              <strong>Klik atau seret file ke sini</strong><br>
+              Mendukung JPG, PNG, PDF · Maks. 5 MB
+            </p>
+            <img class="proof-preview" id="proofPreview" alt="Bukti pembayaran"/>
+          </div>
+          <p class="proof-filename" id="proofFilename"></p>
+          <p style="color:#555;font-size:.76rem;margin-top:8px;">
+            * Upload bukti transfer setelah melakukan pembayaran. Tiket akan diverifikasi dalam 1×24 jam.
           </p>
-          <img class="proof-preview" id="proofPreview" alt="Bukti pembayaran"/>
         </div>
-        <p class="proof-filename" id="proofFilename"></p>
-        <p style="color:#555;font-size:.76rem;margin-top:8px;">
-          * Upload bukti transfer setelah melakukan pembayaran. Tiket akan diverifikasi dalam 1×24 jam.
-        </p>
-      </div>
 
-      <!-- Submit -->
-      <div class="pay-submit-row">
-        <button type="button" class="btn-pay-submit" id="btnPaySubmit"
-          onclick="submitPayment()">
-          ✅ Konfirmasi Pembayaran
-        </button>
-      </div>
+        <div class="pay-submit-row">
+          <button type="submit" name="buy_ticket" class="btn-pay-submit" id="btnPaySubmit">
+            ✅ Konfirmasi Pembayaran
+          </button>
+        </div>
+      </form>
 
-    </div><!-- /payment-section -->
-
-    <div class="form-actions" style="margin-top:20px;">
+    </div><div class="form-actions" style="margin-top:20px;">
       <a href="?step=3&ticket=<?php echo $selectedTicket; ?>&qty=<?php echo $qty; ?>" class="btn-back">← Kembali</a>
     </div>
   </section>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        if(document.getElementById('hiddenName')) {
+            document.getElementById('hiddenName').value = sessionStorage.getItem('t_name') || '';
+            document.getElementById('hiddenEmail').value = sessionStorage.getItem('t_email') || '';
+            document.getElementById('hiddenPhone').value = sessionStorage.getItem('t_phone') || '';
+        }
+    });
+  </script>
   <?php endif; ?>
 
-</div><!-- /tickets-container -->
-</main>
+</div></main>
 
-<!-- Timer expired overlay -->
 <div class="timer-expired" id="timerExpired">
   <div class="expired-box">
     <span class="ex-icon">⏰</span>
@@ -521,7 +572,6 @@ function copyText(text, btn) {
     btn.classList.add('copied');
     setTimeout(() => { btn.textContent = '📋 Salin'; btn.classList.remove('copied'); }, 2000);
   }).catch(() => {
-    // fallback
     const el = document.createElement('textarea');
     el.value = text; document.body.appendChild(el);
     el.select(); document.execCommand('copy');
@@ -566,10 +616,10 @@ function handleProofUpload(e) {
 (function() {
   const timerEl = document.getElementById('timerDisplay');
   const timerWrap = document.getElementById('payTimer');
-  const expired  = document.getElementById('timerExpired');
+  const expired   = document.getElementById('timerExpired');
   if (!timerEl) return;
 
-  let remaining = 15 * 60; // 900 seconds
+  let remaining = 15 * 60; 
   const tick = setInterval(() => {
     remaining--;
     const m = String(Math.floor(remaining / 60)).padStart(2,'0');
@@ -586,19 +636,11 @@ function handleProofUpload(e) {
   }, 1000);
 })();
 
-/* ── Submit payment ──────────────────────────────────── */
-function submitPayment() {
-  const file = document.getElementById('proofFile');
-  if (!file || !file.files.length) {
-    alert('Harap upload bukti pembayaran terlebih dahulu.');
-    document.getElementById('proofArea').scrollIntoView({ behavior:'smooth', block:'center' });
-    return;
-  }
-  const method = document.querySelector('input[name="pay_method"]:checked')?.value;
-  const label  = method === 'bank' ? 'Transfer Bank Mandiri' : 'E-Wallet GoPay';
-  alert(`✅ Pembayaran via ${label} sedang diverifikasi.\n\nTiket akan dikirim ke email Anda dalam 1×24 jam setelah verifikasi berhasil.`);
-  location.href = 'profile.php?tab=tickets';
-}
+// Jalankan alert sukses dari database & pindah halaman otomatis
+<?php if ($success): ?>
+  alert("✅ <?php echo $success; ?>\n\nPembayaran sedang diverifikasi.");
+  window.location.href = 'profile.php?tab=tickets';
+<?php endif; ?>
 </script>
 
 <script>
