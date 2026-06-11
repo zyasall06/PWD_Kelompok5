@@ -1,4 +1,5 @@
 <?php
+include 'service/database.php';
 session_start();
 $error   = '';
 $success = '';
@@ -8,6 +9,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email            = trim($_POST['email']            ?? '');
     $password         = trim($_POST['password']         ?? '');
     $confirm_password = trim($_POST['confirm_password'] ?? '');
+
+ $sql = "INSERT INTO `register` (`id`, `nama lengkap`, `email`, `password`, `konfirmasi password`) 
+ VALUES (NULL, '$name', '$email', '$password', '$confirm_password')";
+
+        if ($db->query($sql) === TRUE) {
+            // Jika sukses disimpan, arahkan ke halaman profil/sukses lewat Javascript bawaan Anda di bawah
+            $success = 'Pemesanan berhasil disimpan ke database!';
+        } else {
+            $error = 'Gagal menyimpan ke database: ' . $db->error;
+            $step = 4;
+        }
+    }
 
     if (empty($name) || empty($email) || empty($password) || empty($confirm_password)) {
         $error = 'Semua field harus diisi.';
@@ -20,7 +33,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $success = 'Akun berhasil dibuat. Silakan login.';
     }
-}
 ?>
 <!doctype html>
 <html lang="id">
