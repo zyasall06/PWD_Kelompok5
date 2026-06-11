@@ -1,11 +1,3 @@
-/*
-  Bundle JS untuk halaman-halaman yang sebelumnya menggunakan <script> inline.
-  Implementasi awal: About page & nav toggle (sudah tersedia dari snapshot).
-
-  Catatan:
-  - Untuk halaman lain (index/announcements/faq/rundown/lineup/event-map/profile)
-    file ini akan diperluas saat proses migrasi berikutnya.
-*/
 
 (function () {
   // ── Common: Nav toggle (shared selector: .nav-toggle + nav) ──
@@ -54,4 +46,3 @@
     initAbout();
   });
 })();
-          
