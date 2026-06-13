@@ -1,5 +1,4 @@
 <?php
-include 'service/database.php';
 session_start();
 $error   = '';
 $success = '';
@@ -9,18 +8,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email            = trim($_POST['email']            ?? '');
     $password         = trim($_POST['password']         ?? '');
     $confirm_password = trim($_POST['confirm_password'] ?? '');
-
- $sql = "INSERT INTO `register` (`id`, `nama lengkap`, `email`, `password`, `konfirmasi password`) 
- VALUES (NULL, '$name', '$email', '$password', '$confirm_password')";
-
-        if ($db->query($sql) === TRUE) {
-            // Jika sukses disimpan, arahkan ke halaman profil/sukses lewat Javascript bawaan Anda di bawah
-            $success = 'Pemesanan berhasil disimpan ke database!';
-        } else {
-            $error = 'Gagal menyimpan ke database: ' . $db->error;
-            $step = 4;
-        }
-    }
 
     if (empty($name) || empty($email) || empty($password) || empty($confirm_password)) {
         $error = 'Semua field harus diisi.';
@@ -33,6 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $success = 'Akun berhasil dibuat. Silakan login.';
     }
+}
 ?>
 <!doctype html>
 <html lang="id">
@@ -230,7 +218,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   <div class="brand">YOUTHEVER 2026</div>
   <h1>Sign Up</h1>
-  <p class="sub">Sudah punya akun? <a href="index.php">Sign in di sini</a></p>
+  <p class="sub">Sudah punya akun? <a href="login.php">Sign in di sini</a></p>
 
   <?php if ($error): ?>
     <div class="auth-alert error">⚠️ <?php echo htmlspecialchars($error); ?></div>
