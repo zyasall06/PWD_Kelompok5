@@ -4,10 +4,100 @@ require_once 'config/db.php';
 
 $loggedIn = isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true;
 
-if (!$loggedIn) {
-    header('Location: index.php');
-    exit;
-}
+// Jika belum login, tampilkan halaman "harus login" bukan redirect paksa
+if (!$loggedIn):
+?>
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard – YOUTHEVER 2026</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    body {
+      background:
+        linear-gradient(rgba(0,0,0,.75),rgba(0,0,0,.75)),
+        url("image/back 10.jpg") center/cover no-repeat fixed;
+      min-height:100vh; display:flex; flex-direction:column;
+    }
+    nav { position:fixed; top:0; left:0; right:0; z-index:100;
+      background:rgba(0,0,0,.82); backdrop-filter:blur(14px); border-bottom:1px solid rgba(197,160,89,.22); }
+    .login-gate {
+      flex:1; display:flex; align-items:center; justify-content:center;
+      padding:100px 24px 60px; text-align:center;
+    }
+    .login-gate-card {
+      background:rgba(15,5,15,.82); border:1px solid rgba(197,160,89,.2);
+      backdrop-filter:blur(12px); border-radius:20px;
+      padding:52px 44px; max-width:440px; width:100%;
+    }
+    .gate-icon { font-size:3.5rem; display:block; margin-bottom:18px; }
+    .gate-title { color:#d4af37; font-size:1.6rem; font-weight:800; margin-bottom:10px; }
+    .gate-sub   { color:#666; font-size:.92rem; line-height:1.6; margin-bottom:32px; }
+    .gate-btns  { display:flex; flex-direction:column; gap:12px; }
+    .btn-gate-login {
+      display:block; background:linear-gradient(135deg,#c5a059,#d4af37);
+      color:#000; padding:13px 24px; border-radius:10px;
+      font-weight:700; font-size:.95rem; text-decoration:none;
+      letter-spacing:.04em; transition:opacity .2s;
+    }
+    .btn-gate-login:hover { opacity:.88; }
+    .btn-gate-register {
+      display:block; background:transparent; border:1.5px solid #5d3f5d;
+      color:#c39bd3; padding:12px 24px; border-radius:10px;
+      font-weight:700; font-size:.95rem; text-decoration:none;
+      letter-spacing:.04em; transition:all .2s;
+    }
+    .btn-gate-register:hover { background:#5d3f5d; color:#fff; }
+    .gate-back  { display:block; margin-top:20px; color:#444; font-size:.82rem; text-decoration:none; }
+    .gate-back:hover { color:#888; }
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-left"><a href="index.php" class="logo">YOUTHEVER 2026</a></div>
+  <button class="nav-toggle">☰</button>
+  <div class="nav-center">
+    <a href="index.php">Home</a><a href="about.php">About Us</a>
+    <a href="lineup.php">Line Up</a><a href="event-map.php">Venue</a>
+    <a href="rundown.php">Rundown</a><a href="announcements.php">Berita</a>
+    <a href="faq.php">FAQ</a>
+  </div>
+  <div class="nav-right">
+    <a href="login.php">Login</a>
+    <a href="register.php" class="buy-btn">Register</a>
+  </div>
+</nav>
+
+<div class="login-gate">
+  <div class="login-gate-card">
+    <span class="gate-icon">🔒</span>
+    <h1 class="gate-title">Akses Dashboard</h1>
+    <p class="gate-sub">
+      Anda perlu masuk ke akun untuk melihat dashboard, tiket, dan jadwal festival Anda.
+    </p>
+    <div class="gate-btns">
+      <a href="login.php?redirect=profile.php" class="btn-gate-login">🔑 Sign In ke Akun Saya</a>
+      <a href="register.php" class="btn-gate-register">✨ Buat Akun Baru</a>
+    </div>
+    <a href="index.php" class="gate-back">← Kembali ke Home</a>
+  </div>
+</div>
+
+<script>
+(function(){
+  var btn=document.querySelector('.nav-toggle');
+  var nav=document.querySelector('nav');
+  if(!btn||!nav) return;
+  btn.addEventListener('click',function(){ nav.classList.toggle('nav-open'); });
+})();
+</script>
+</body>
+</html>
+<?php
+exit;
+endif;
 
 // Ambil data admin dari database
 $userData = [
@@ -215,7 +305,6 @@ if (!in_array($activeTab, $allowedTabs, true)) {
       </div>
       <div class="nav-right">
         <a href="profile.php" style="color: #d4af37;">Dashboard</a>
-        <a href="tickets.php" class="buy-btn">Buy Ticket</a>
       </div>
     </nav>
 
