@@ -215,7 +215,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['buy_ticket'])) {
   <div class="nav-right">
     <?php if ($loggedIn): ?><a href="profile.php">Dashboard</a>
     <?php else: ?><a href="index.php">Login</a><?php endif; ?>
-    <a href="tickets.php" class="buy-btn">Buy Ticket</a>
   </div>
 </nav>
 
@@ -291,10 +290,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['buy_ticket'])) {
           <label>Jumlah Tiket</label>
           <input type="number" id="qtyInput" min="1" max="5" value="<?php echo $qty; ?>" required/>
         </div>
-      </div>
-      <div class="form-group">
-        <label>Catatan (opsional)</label>
-        <textarea placeholder="Catatan tambahan..."></textarea>
       </div>
       <div class="form-actions">
         <a href="?step=1" class="btn-back">← Kembali</a>
