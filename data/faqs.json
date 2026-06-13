@@ -1,0 +1,32 @@
+[
+    {
+        "id": 1,
+        "question": "Apa itu YOUTHREVER FEST?",
+        "answer": "YOUTHREVER FEST adalah festival musik dua hari dengan konsep dreamy, emotional, dan youth-culture experience yang menghadirkan berbagai musisi indie dan alternative.",
+        "active": true
+    },
+    {
+        "id": 2,
+        "question": "Kapan festival berlangsung?",
+        "answer": "20–21 September 2026.",
+        "active": true
+    },
+    {
+        "id": 3,
+        "question": "Dimana venue festival?",
+        "answer": "Aurora Open Space, Bandung.",
+        "active": true
+    },
+    {
+        "id": 4,
+        "question": "Apakah festival ini outdoor?",
+        "answer": "Ya, festival menggunakan konsep outdoor open-air venue.",
+        "active": true
+    },
+    {
+        "id": 5,
+        "question": "Apakah tersedia tenant makanan dan minuman?",
+        "answer": "Tersedia berbagai food & beverage tenant selama festival berlangsung.",
+        "active": true
+    }
+]
